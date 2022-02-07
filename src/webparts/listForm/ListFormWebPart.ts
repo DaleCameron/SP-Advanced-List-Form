@@ -23,17 +23,20 @@ import { update, get } from '@microsoft/sp-lodash-subset';
 
 import { ListService } from '../../common/services/ListService';
 import { ControlMode } from '../../common/datatypes/ControlMode';
+import { SimpleTokenServcie } from '../../common/services/SimpleTokenService';
 
 initializeIcons();
 
 export default class ListFormWebPart extends BaseClientSideWebPart<IListFormWebPartProps> {
 
   private listService: ListService;
+  private tokenService: SimpleTokenServcie;
   private cachedLists = null;
 
   protected onInit(): Promise<void> {
     return super.onInit().then((_) => {
       this.listService = new ListService(this.context.spHttpClient);
+      this.tokenService = new SimpleTokenServcie({message:"Hello", user:this.context.pageContext.user})
       //Polyfill array find
       if (!Array.prototype["find"]) {
         Array.prototype["find"] = function (predicate, argument) {
@@ -57,6 +60,7 @@ export default class ListFormWebPart extends BaseClientSideWebPart<IListFormWebP
           return undefined;
         };
       }
+      console.log(this.context);
     });
   }
 
@@ -98,6 +102,7 @@ export default class ListFormWebPart extends BaseClientSideWebPart<IListFormWebP
           onSubmitSucceeded: (id: number) => this.formSubmitted(id),
           onUpdateFields: (fields: IFieldConfiguration[]) => this.updateField(fields),
           context: this.context,
+          tokens: this.tokenService
         }
       );
     } else {

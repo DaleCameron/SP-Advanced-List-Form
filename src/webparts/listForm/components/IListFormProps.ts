@@ -2,6 +2,7 @@ import { SPHttpClient } from '@microsoft/sp-http';
 import { ControlMode } from '../../../common/datatypes/ControlMode';
 import { IFieldConfiguration } from './IFieldConfiguration';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
+import { ITokenService } from '../../../common/services/ITokenService';
 
 export interface IListFormProps {
   title: string;
@@ -18,4 +19,5 @@ export interface IListFormProps {
   onSubmitFailed?(fieldErrors: any): void;
   onUpdateFields?(newFields: IFieldConfiguration[]): void;
   context: WebPartContext;
+  tokens: ITokenService;
 }

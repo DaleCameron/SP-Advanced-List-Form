@@ -185,10 +185,12 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                   .reduce((newData, pn) => { newData[pn.substring(field.fieldName.length + 1)] = data[pn]; return newData; }, {});
               }
               const errorMessage = fieldErrors[field.fieldName];
+
+              let valueToUse = !this.props.inDesignMode && this.props.tokens.hasToken(value) ? this.props.tokens.render(value) : value;
               const fieldComponent = SPFormField({
                 fieldSchema: fieldSchema,
                 controlMode: this.props.formType,
-                value: value,
+                value: valueToUse,
                 extraData: extraData,
                 errorMessage: errorMessage,
                 hideIfFieldUnsupported: !this.props.showUnsupportedFields,

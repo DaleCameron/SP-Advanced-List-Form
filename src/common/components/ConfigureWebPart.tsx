@@ -2,7 +2,6 @@ import * as React from 'react';
 import { IWebPartContext } from '@microsoft/sp-webpart-base';
 import { MessageBar, MessageBarType } from 'office-ui-fabric-react/lib/MessageBar';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
-
 import styles from './ConfigureWebPart.module.scss';
 
 export interface IConfigureWebPartProps {
@@ -12,7 +11,7 @@ export interface IConfigureWebPartProps {
   buttonText?: string;
 }
 
-const ConfigureWebPart: React.SFC<IConfigureWebPartProps> = (props) => {
+function ConfigureWebPart(props:IConfigureWebPartProps)  {
   const {
     webPartContext,
     title,
