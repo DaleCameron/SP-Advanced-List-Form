@@ -30,6 +30,7 @@ import styles from './ListForm.module.scss';
 import { Validate } from '@microsoft/sp-core-library';
 import { Icon } from 'office-ui-fabric-react';
 
+import ConditionInput from './ConditionInput';
 /*************************************************************************************
  * React Component to render a SharePoint list form on any page.
  * The list form can be configured to be either a new form for adding a new list item,
@@ -185,7 +186,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                   .reduce((newData, pn) => { newData[pn.substring(field.fieldName.length + 1)] = data[pn]; return newData; }, {});
               }
               const errorMessage = fieldErrors[field.fieldName];
-
+              //If the form is in design mode show the token, otherwise show the value from the token service
               let valueToUse = !this.props.inDesignMode && this.props.tokens.hasToken(value) ? this.props.tokens.render(value) : value;
               const fieldComponent = SPFormField({
                 fieldSchema: fieldSchema,
@@ -205,6 +206,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                     itemKey={field.key}
                     moveField={(dragIdx, hoverIdx) => this.moveField(dragIdx, hoverIdx)}
                     removeField={(index) => this.removeField(index)} >
+                    <ConditionInput />
                     {fieldComponent}
                   </DraggableComponent>);
               } else {

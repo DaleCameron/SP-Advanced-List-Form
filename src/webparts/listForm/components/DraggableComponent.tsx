@@ -6,6 +6,7 @@ import styles from './DraggableComponent.module.scss';
 import * as strings from 'ListFormStrings';
 import { Icon } from 'office-ui-fabric-react';
 
+
 const dragSource = {
   beginDrag(props: IDraggableComponentProps) {
     return {

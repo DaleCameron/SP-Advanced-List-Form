@@ -5,6 +5,7 @@
   "requires": true,
   "packages": {
     "": {
+      "name": "sp-advanced-list-form",
       "version": "1.0.9",
       "dependencies": {
         "@microsoft/sp-core-library": "1.12.1",
