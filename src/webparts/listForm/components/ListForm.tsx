@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { RefObject } from 'react';
 import { autobind } from 'office-ui-fabric-react/lib/Utilities';
 import { IFieldConfiguration } from './IFieldConfiguration';
 import { IListFormProps } from './IListFormProps';
@@ -28,9 +29,10 @@ import * as strings from 'ListFormStrings';
 
 import styles from './ListForm.module.scss';
 import { Validate } from '@microsoft/sp-core-library';
-import { Icon } from 'office-ui-fabric-react';
+import { Icon, TextFieldBase } from 'office-ui-fabric-react';
 
-import ConditionInput from './ConditionInput';
+import { TextField } from 'office-ui-fabric-react';
+import {Subject, debounce, interval} from 'rxjs';
 /*************************************************************************************
  * React Component to render a SharePoint list form on any page.
  * The list form can be configured to be either a new form for adding a new list item,
@@ -38,12 +40,14 @@ import ConditionInput from './ConditionInput';
  * fields of an existing list item.
  * In design mode the fields to render can be moved, added and deleted.
  *************************************************************************************/
+interface IIndexedValueChange{index:number, value:string}
 class ListForm extends React.Component<IListFormProps, IListFormState> {
 
   private listFormService: IListFormService;
   private spPeopleService: ISPPeopleSearchService;
   private groupService: GroupService;
-
+  private fieldChange: Subject<IIndexedValueChange>;
+  private conditionChange: Subject<IIndexedValueChange>;
   constructor(props: IListFormProps) {
     super(props);
 
@@ -63,6 +67,12 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
     this.listFormService = new ListFormService(props.spHttpClient);
     this.spPeopleService = new SPPeopleSearchService();
     this.groupService = new GroupService(props.spHttpClient);
+    this.fieldChange = new Subject<IIndexedValueChange>();
+    this.conditionChange = new Subject<IIndexedValueChange>();
+    this.conditionChange.pipe(
+      debounce(()=> interval(500))
+    ).subscribe(this.updateFeildCondition.bind(this));
+    this.fieldChange.pipe(debounce(()=> interval(500))).subscribe(this.updateFeildDefaultValue.bind(this));
   }
 
   public render() {
@@ -186,8 +196,18 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                   .reduce((newData, pn) => { newData[pn.substring(field.fieldName.length + 1)] = data[pn]; return newData; }, {});
               }
               const errorMessage = fieldErrors[field.fieldName];
-              //If the form is in design mode show the token, otherwise show the value from the token service
-              let valueToUse = !this.props.inDesignMode && this.props.tokens.hasToken(value) ? this.props.tokens.render(value) : value;
+              //if we are in design mode show defult value otherwise if he value as not be set and there is a default value set it and
+              // show the value. If there is not default value then just show value.
+              let valueToUse = field.defaultValue || "";
+              if(!this.props.inDesignMode){
+                if(value){
+                  valueToUse = value;
+                } else if(field.defaultValue){
+                 valueToUse= this.props.tokens.render(field.defaultValue)
+                 this.valueChanged(field.fieldName, valueToUse);
+                }
+
+              }
               const fieldComponent = SPFormField({
                 fieldSchema: fieldSchema,
                 controlMode: this.props.formType,
@@ -195,7 +215,8 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                 extraData: extraData,
                 errorMessage: errorMessage,
                 hideIfFieldUnsupported: !this.props.showUnsupportedFields,
-                valueChanged: (val) => this.valueChanged(field.fieldName, val),
+                //if in Design mode update the defaultValue otherwise update the value
+                valueChanged: this.props.inDesignMode ? (val)=> this.fieldChange.next({index: idx, value:val}) :  (val) => this.valueChanged(field.fieldName, val),
                 context: this.props.context,
               });
               if (fieldComponent && this.props.inDesignMode) {
@@ -205,8 +226,9 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                     index={idx}
                     itemKey={field.key}
                     moveField={(dragIdx, hoverIdx) => this.moveField(dragIdx, hoverIdx)}
-                    removeField={(index) => this.removeField(index)} >
-                    <ConditionInput />
+                    removeField={(index) => this.removeField(index)} 
+                    >
+                    <TextField value={field.condition} onChange={(_, val)=> this.conditionChange.next({index: idx, value: val})} label='Condition'/>
                     {fieldComponent}
                   </DraggableComponent>);
               } else {
@@ -224,6 +246,10 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
     this.readSchema(this.props.listUrl, this.props.formType).then(
       () => this.readData(this.props.listUrl, this.props.formType, this.props.id)
     );
+
+  }
+  public componentWillUnmount(): void {
+      this.fieldChange.complete();
   }
 
 
@@ -565,6 +591,16 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
   private removeField(index: number) {
     const newFields = this.getFields().splice(0); // clone
     newFields.splice(index, 1);
+    this.props.onUpdateFields(newFields);
+  }
+  private updateFeildDefaultValue(change:IIndexedValueChange) {
+    const newFields = this.getFields().splice(0); // clone
+    newFields[change.index].defaultValue = change.value;
+    this.props.onUpdateFields(newFields);
+  }
+  private updateFeildCondition(change:IIndexedValueChange) {
+    const newFields = this.getFields().splice(0); // clone
+    newFields[change.index].condition = change.value;
     this.props.onUpdateFields(newFields);
   }
 

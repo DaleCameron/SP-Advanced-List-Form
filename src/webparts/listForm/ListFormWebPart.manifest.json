@@ -20,7 +20,7 @@
         "default": "Under Development"
       },
       "title": {
-        "default": "List Form",
+        "default": "Advanced List Form",
         "fr-fr": "Formulaire de liste"
       },
       "description": {
@@ -29,7 +29,7 @@
       },
       "officeFabricIconFontName": "PreviewLink",
       "properties": {
-        "title": "List Form",
+        "title": "Advanced List Form",
         "description": "",
         "listUrl": "",
         "formType": 3
