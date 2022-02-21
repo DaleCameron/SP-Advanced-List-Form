@@ -228,7 +228,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                     moveField={(dragIdx, hoverIdx) => this.moveField(dragIdx, hoverIdx)}
                     removeField={(index) => this.removeField(index)} 
                     >
-                    <TextField value={field.condition} onChange={(_, val)=> this.conditionChange.next({index: idx, value: val})} label='Condition'/>
+                    {/* <TextField value={field.condition} onChange={(_, val)=> this.conditionChange.next({index: idx, value: val})} label='Condition'/> */}
                     {fieldComponent}
                   </DraggableComponent>);
               } else {
