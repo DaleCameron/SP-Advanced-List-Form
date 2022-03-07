@@ -1,10 +1,10 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
   "solution": {
-    "name": "react-form-webpart-client-side-solution",
-    "id": "373a20ef-dfc6-456a-95ec-171de3c94581",
-    "version": "1.0.10.0",
-    "title": "Advanced List form",
+    "name": "mercy-list-form",
+    "id": "1dd44a3e-c2d6-44a6-a024-7169f748b453",
+    "version": "0.1.0.0",
+    "title": "Mercy List form",
     "supportedLocales": [
       "en-US",
       "fr-FR",
@@ -14,6 +14,6 @@
     "includeClientSideAssets": true
   },
   "paths": {
-    "zippedPackage": "solution/react-form-webpart.sppkg"
+    "zippedPackage": "solution/mercy-list-form.sppkg"
   }
 }
