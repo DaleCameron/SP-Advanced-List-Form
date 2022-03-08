@@ -27,7 +27,7 @@
         "default": "Shows a form for the selected list",
         "fr-fr": "Affiche un formulaire pour la liste sélectionnée"
       },
-      "officeFabricIconFontName": "PreviewLink",
+      "officeFabricIconFontName": "PageHeaderEdit",
       "properties": {
         "title": "Mercy List Form",
         "description": "",
