@@ -32,7 +32,8 @@ import { Validate } from '@microsoft/sp-core-library';
 import { Icon, TextFieldBase } from 'office-ui-fabric-react';
 
 import { TextField } from 'office-ui-fabric-react';
-import {Subject, debounce, interval} from 'rxjs';
+import { Subject, debounce, interval } from 'rxjs';
+import { FieldUrlRenderer } from '@pnp/spfx-controls-react';
 /*************************************************************************************
  * React Component to render a SharePoint list form on any page.
  * The list form can be configured to be either a new form for adding a new list item,
@@ -40,7 +41,7 @@ import {Subject, debounce, interval} from 'rxjs';
  * fields of an existing list item.
  * In design mode the fields to render can be moved, added and deleted.
  *************************************************************************************/
-interface IIndexedValueChange{index:number, value:string}
+interface IIndexedValueChange { index: number, value: string }
 class ListForm extends React.Component<IListFormProps, IListFormState> {
 
   private listFormService: IListFormService;
@@ -48,6 +49,8 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
   private groupService: GroupService;
   private fieldChange: Subject<IIndexedValueChange>;
   private conditionChange: Subject<IIndexedValueChange>;
+  //stores fieldNames that have been rendered once
+  private renderedOnce: Array<string> = new Array<string>();
   constructor(props: IListFormProps) {
     super(props);
 
@@ -69,10 +72,11 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
     this.groupService = new GroupService(props.spHttpClient);
     this.fieldChange = new Subject<IIndexedValueChange>();
     this.conditionChange = new Subject<IIndexedValueChange>();
-    this.conditionChange.pipe(
-      debounce(()=> interval(500))
-    ).subscribe(this.updateFeildCondition.bind(this));
-    this.fieldChange.pipe(debounce(()=> interval(500))).subscribe(this.updateFeildDefaultValue.bind(this));
+      this.conditionChange.pipe(
+        debounce(() => interval(500))
+      ).subscribe(this.updateFieldCondition.bind(this));
+      this.fieldChange.pipe(debounce(() => interval(500))).subscribe(this.updateFieldDefaultValue.bind(this));
+    
   }
 
   public render() {
@@ -196,17 +200,19 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                   .reduce((newData, pn) => { newData[pn.substring(field.fieldName.length + 1)] = data[pn]; return newData; }, {});
               }
               const errorMessage = fieldErrors[field.fieldName];
-              //if we are in design mode show defult value otherwise if he value as not be set and there is a default value set it and
+              //if we are in design mode show defult value otherwise if the value as not be set and there is a default value set it and
               // show the value. If there is not default value then just show value.
-              let valueToUse = field.defaultValue || "";
-              if(!this.props.inDesignMode){
-                if(value){
-                  valueToUse = value;
-                } else if(field.defaultValue){
-                 valueToUse= this.props.tokens.render(field.defaultValue)
-                 this.valueChanged(field.fieldName, valueToUse);
+              let valueToUse = value;
+              if (!this.props.inDesignMode) {
+                const firstRendered = this.renderedOnce.indexOf(field.fieldName) == -1;
+                console.log(firstRendered, this.renderedOnce, field.fieldName);
+                if ( firstRendered && field.defaultValue) {
+                    this.renderedOnce.push(field.fieldName);
+                    valueToUse = this.props.tokens.render(field.defaultValue)
+                    this.valueChanged(field.fieldName, valueToUse);
                 }
-
+              } else {
+                valueToUse = field.defaultValue || "";
               }
               const fieldComponent = SPFormField({
                 fieldSchema: fieldSchema,
@@ -216,7 +222,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                 errorMessage: errorMessage,
                 hideIfFieldUnsupported: !this.props.showUnsupportedFields,
                 //if in Design mode update the defaultValue otherwise update the value
-                valueChanged: this.props.inDesignMode ? (val)=> this.fieldChange.next({index: idx, value:val}) :  (val) => this.valueChanged(field.fieldName, val),
+                valueChanged: this.props.inDesignMode ? (val) => this.fieldChange.next({ index: idx, value: val }) : (val) => this.valueChanged(field.fieldName, val),
                 context: this.props.context,
               });
               if (fieldComponent && this.props.inDesignMode) {
@@ -226,8 +232,8 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                     index={idx}
                     itemKey={field.key}
                     moveField={(dragIdx, hoverIdx) => this.moveField(dragIdx, hoverIdx)}
-                    removeField={(index) => this.removeField(index)} 
-                    >
+                    removeField={(index) => this.removeField(index)}
+                  >
                     {/* <TextField value={field.condition} onChange={(_, val)=> this.conditionChange.next({index: idx, value: val})} label='Condition'/> */}
                     {fieldComponent}
                   </DraggableComponent>);
@@ -249,7 +255,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
 
   }
   public componentWillUnmount(): void {
-      this.fieldChange.complete();
+    this.fieldChange.complete();
   }
 
 
@@ -593,15 +599,19 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
     newFields.splice(index, 1);
     this.props.onUpdateFields(newFields);
   }
-  private updateFeildDefaultValue(change:IIndexedValueChange) {
+  private updateFieldDefaultValue(change: IIndexedValueChange) {
+    if (this.props.inDesignMode) {
     const newFields = this.getFields().splice(0); // clone
     newFields[change.index].defaultValue = change.value;
     this.props.onUpdateFields(newFields);
+    }
   }
-  private updateFeildCondition(change:IIndexedValueChange) {
+  private updateFieldCondition(change: IIndexedValueChange) {
+    if (this.props.inDesignMode) {
     const newFields = this.getFields().splice(0); // clone
     newFields[change.index].condition = change.value;
     this.props.onUpdateFields(newFields);
+    }
   }
 
 }
