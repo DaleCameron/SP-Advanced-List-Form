@@ -41,7 +41,7 @@ import { FieldUrlRenderer } from '@pnp/spfx-controls-react';
  * fields of an existing list item.
  * In design mode the fields to render can be moved, added and deleted.
  *************************************************************************************/
-interface IIndexedValueChange { index: number, value: string }
+interface IIndexedValueChange { index: number; value: string; }
 class ListForm extends React.Component<IListFormProps, IListFormState> {
 
   private listFormService: IListFormService;
@@ -208,7 +208,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
                 console.log(firstRendered, this.renderedOnce, field.fieldName);
                 if ( firstRendered && field.defaultValue) {
                     this.renderedOnce.push(field.fieldName);
-                    valueToUse = this.props.tokens.render(field.defaultValue)
+                    valueToUse = this.props.tokens.render(field.defaultValue);
                     this.valueChanged(field.fieldName, valueToUse);
                 }
               } else {
@@ -336,7 +336,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
         const data = this.state.fieldsSchema
           .reduce((newData, fld) => {
             if (fld.DefaultValue && fld.FieldType.indexOf("TaxonomyField") > -1) {
-              newData[fld.InternalName] = fld.DefaultValue.replace(new RegExp("([#][0-9]+;#|^[0-9]+;#)", "g"), "")
+              newData[fld.InternalName] = fld.DefaultValue.replace(new RegExp("([#][0-9]+;#|^[0-9]+;#)", "g"), "");
             } else {
               newData[fld.InternalName] = fld.DefaultValue;
             }

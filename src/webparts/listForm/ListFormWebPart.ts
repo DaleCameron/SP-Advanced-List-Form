@@ -37,7 +37,7 @@ export default class ListFormWebPart extends BaseClientSideWebPart<IListFormWebP
     return super.onInit().then((_) => {
       this.listService = new ListService(this.context.spHttpClient);
       console.log(this.context.pageContext.user);
-      this.tokenService = new SimpleTokenServcie({message:"Hello", user:this.context.pageContext.user})
+      this.tokenService = new SimpleTokenServcie({message:"Hello", user:this.context.pageContext.user});
       //Polyfill array find
       if (!Array.prototype["find"]) {
         Array.prototype["find"] = function (predicate, argument) {

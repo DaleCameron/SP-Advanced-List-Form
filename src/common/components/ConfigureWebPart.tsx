@@ -33,6 +33,6 @@ function ConfigureWebPart(props:IConfigureWebPartProps)  {
       </div>
     </div>
   );
-};
+}
 
 export default ConfigureWebPart;

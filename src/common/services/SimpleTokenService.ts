@@ -14,7 +14,7 @@ export class SimpleTokenServcie implements ITokenService {
         //  return  new Promise<string>((resolve, reject)=>{
         //      resolve(render(template,valueStore ));
         //  });
-        return render(template, this.valueStore)
+        return render(template, this.valueStore);
     }
     public hasToken(aString: string): boolean {
         return this.tokenMatchRegex.test(aString);
