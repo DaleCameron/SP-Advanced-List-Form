@@ -50,7 +50,6 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
   private fieldChange: Subject<IIndexedValueChange>;
   private conditionChange: Subject<IIndexedValueChange>;
   //stores fieldNames that have been rendered once
-  private renderedOnce: Array<string> = new Array<string>();
   constructor(props: IListFormProps) {
     super(props);
 
@@ -65,6 +64,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
       notifications: [],
       fieldErrors: {},
       hasError: false,
+      fieldsWithValues: new Array<string>(),
       errorInfo: ''
     };
     this.listFormService = new ListFormService(props.spHttpClient);
@@ -203,15 +203,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
               //if we are in design mode show defult value otherwise if the value as not be set and there is a default value set it and
               // show the value. If there is not default value then just show value.
               let valueToUse = value;
-              if (!this.props.inDesignMode) {
-                const firstRendered = this.renderedOnce.indexOf(field.fieldName) == -1;
-                console.log(firstRendered, this.renderedOnce, field.fieldName);
-                if ( firstRendered && field.defaultValue) {
-                    this.renderedOnce.push(field.fieldName);
-                    valueToUse = this.props.tokens.render(field.defaultValue);
-                    this.valueChanged(field.fieldName, valueToUse);
-                }
-              } else {
+              if (this.props.inDesignMode) {
                 valueToUse = field.defaultValue || "";
               }
               const fieldComponent = SPFormField({
@@ -256,6 +248,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
   }
   public componentWillUnmount(): void {
     this.fieldChange.complete();
+    this.conditionChange.complete();
   }
 
 
@@ -302,6 +295,11 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
               }
             }
           }
+        }
+        //set default value from props
+        const fields = this.props.fields && this.props.fields.filter((field)=> field.fieldName == fieldsSchema[i].Name);
+        if(fields && fields.length > 0 && fields[0].defaultValue){
+          fieldsSchema[i].DefaultValue = this.props.tokens.render(fields[0].defaultValue);
         }
       }
 
@@ -371,6 +369,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
 
   @autobind
   private async valueChanged(fieldName: string, newValue: any) {
+
     let schema = this.state.fieldsSchema.filter((item) => item.InternalName === fieldName)[0];
     if (schema.Type == "User" || schema.Type === "UserMulti") {
       for (let i = 0; i < newValue.length; i++) {
@@ -386,7 +385,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
           }
         }
       }
-
+      
       this.setState((prevState, props) => {
         return {
           ...prevState,
@@ -583,6 +582,7 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
     newFields.push({ key: fieldKey, fieldName: fieldName });
     this.props.onUpdateFields(newFields);
   }
+
 
   private moveField(fieldKey, toIndex) {
     const fields = this.getFields();
