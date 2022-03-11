@@ -64,7 +64,6 @@ class ListForm extends React.Component<IListFormProps, IListFormState> {
       notifications: [],
       fieldErrors: {},
       hasError: false,
-      fieldsWithValues: new Array<string>(),
       errorInfo: ''
     };
     this.listFormService = new ListFormService(props.spHttpClient);

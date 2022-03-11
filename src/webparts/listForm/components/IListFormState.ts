@@ -12,6 +12,5 @@ export interface IListFormState {
   fieldErrors: { [fieldName: string]: string };
   showUnsupportedFields?: boolean;
   hasError: boolean;
-  fieldsWithValues: string[];
   errorInfo: string;
 }
